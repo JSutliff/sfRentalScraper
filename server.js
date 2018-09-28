@@ -4,14 +4,23 @@ var express = require("express");
 // Require request and cheerio. This makes the scraping possible
 var request = require("request");
 var cheerio = require("cheerio");
+var ArticleSchema = require("./models/articles");
+var mongoose = require("mongoose");
 
-
-
-
-// ====================================================
 
 // Initialize Express
 var app = express();
+
+
+//Serve up static assets from public
+app.use(express.static("public"));
+// ====================================================
+
+mongoose.Promise = Promise;
+mongoose.connect("mongodb://localhost/sfRentalScrapper");
+
+
+var PORT = 3000;
 
 request("https://sfbay.craigslist.org/search/sfc/apa?max_price=3500&availabilityMode=0&pets_dog=1&sale_date=all+dates", function(error, response, html) {
 
@@ -20,28 +29,55 @@ request("https://sfbay.craigslist.org/search/sfc/apa?max_price=3500&availability
   var $ = cheerio.load(html);
 
   // An empty array to save the data that we'll scrape
-  var results = [];
+  var resultsArr = [];
 
   // With cheerio, find each p-tag with the "title" class
   // (i: iterator. element: the current element)
   $("li.result-row").each(function(i, element) {
     // console.log(element);
-    var title = $(element).find('a').text();
-    console.log(title);
-    // Save the text of the element in a "title" variable
-    // var title = $(element).text();
+    var title = $(element).find('a.result-title').text();
+    var link = $(element).find('a.result-title').attr('href');
+    var price = $(element).find('span.result-price').text();
+    price = `$${price.split('$')[1]}`;
+    var location = $(element).find('span.result-hood').text();
+    location = location.replace('(', '').replace(')', '');
 
-    // In the currently selected element, look at its child elements (i.e., its a-tags),
-    // then save the values for any "href" attributes that the child elements may have
-    // var link = $(element).children().attr("href");
+    var rentalInfo = {
+      title: title,
+      link: link,
+      price: price, 
+      location: location
+    };
 
-    // Save these results in an object that we'll push into the results array we defined earlier
-    // results.push({
-    //   title: title,
-    //   link: link
-    // });
+    resultsArr.push(rentalInfo);
+
+    ArticleSchema.remove({}, function(err, res) {
+      if (err) {
+        throw err;
+      }
+    });
+    ArticleSchema.create(resultsArr, function(err, results) {
+      if (err) {
+        throw err;
+      }
+      res.json(results);
+    });
   });
-
-  // Log the results once you've looped through each of the elements found with cheerio
-  // console.log(results);
 });
+
+
+
+
+
+
+
+
+
+
+
+
+// Start the server
+app.listen(PORT, function() {
+  console.log("App running on port " + PORT + "!");
+});
+
