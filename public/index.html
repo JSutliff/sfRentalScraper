@@ -24,7 +24,7 @@
                         that are dog friendly and $3500/mo or less. Users can mark
                         favorite rentals and leave notes.  
                       </p>
-                      <button class="uk-button uk-button-primary uk-align-center">Rescrape</button>
+                      <button class="uk-button uk-button-primary uk-align-center rescrape">Rescrape</button>
                       <button class="uk-button uk-button-danger uk-align-center">Saved sRentals</button>
                     </div>
                   </div>
@@ -36,8 +36,8 @@
 
       <div id="appendCardsHere">
 
-        <!-- Card -->
-        <div class="uk-card uk-card-default uk-width-1-1@m">
+    
+        <!-- <div class="uk-card uk-card-default uk-width-1-1@m">
           <div class="uk-card-header">
               <div class="uk-grid-small uk-flex-middle" uk-grid>
                   <div class="uk-width-auto">
@@ -51,14 +51,14 @@
           </div>
           <div class="uk-card-body">
               <p>1br - 881ft2 - (alamo square / nopa)</p>
+              <p><a href="https://sfbay.craigslist.org/sfc/apa/d/this-is-beautiful/6710886945.html">Link To Listing</a></p>
           </div>
           <div class="uk-card-footer">
               <a href="" class="uk-icon-button" uk-icon="heart"></a>
               <a href="" class="uk-icon-button" uk-icon="file-edit"></a>
           </div>
       </div>
-  </div>
-
+  </div> -->
 
       </div>
 
@@ -66,5 +66,38 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-rc.16/js/uikit.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-rc.16/js/uikit-icons.min.js"></script>
+<script
+			  src="https://code.jquery.com/jquery-3.3.1.js"
+			  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+			  crossorigin="anonymous"></script>
+<script>
+  $('.rescrape').on('click', function() {
+    $.ajax("/scrape", {
+            type: "GET"
+        }).then(function (result) {
+          result.forEach(function(elem) {
+            $('#appendCardsHere').append(`<div class="uk-card uk-card-default uk-width-1-1@m">
+          <div class="uk-card-header">
+              <div class="uk-grid-small uk-flex-middle" uk-grid>
+                  <div class="uk-width-expand">
+                      <h3 class="uk-card-title uk-margin-remove-bottom">${elem.title}</h3>
+                      <p class="uk-text-meta uk-margin-remove-top">${elem.price}</p>
+                  </div>
+              </div>
+          </div>
+          <div class="uk-card-body">
+              <p>${elem.summary}</p>
+              <p><a href="${elem.link}">Link To Listing</a></p>
+          </div>
+          <div class="uk-card-footer">
+              <a href="" class="uk-icon-button" uk-icon="heart"></a>
+              <a href="" class="uk-icon-button" uk-icon="file-edit"></a>
+          </div>
+      </div>
+  </div> <br>`);
+          })
+        })
+  })
+</script>
 </body>
 </html>
