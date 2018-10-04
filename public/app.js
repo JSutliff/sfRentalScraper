@@ -1,7 +1,7 @@
 
 // FRONT END SYNTAX
-$.get
+// $.get
 
-$.ajax({
+// $.ajax({
 
-})
+// })

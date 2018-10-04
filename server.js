@@ -27,14 +27,13 @@ app.get('/scrape', function(req, res) {
     // Load the HTML into cheerio and save it to a variable
     // '$' becomes a shorthand for cheerio's selector commands, much like jQuery's '$'
     var $ = cheerio.load(html);
-  
+
     // An empty array to save the data that we'll scrape
     var resultsArr = [];
   
     // With cheerio, find each p-tag with the "title" class
     // (i: iterator. element: the current element)
     $("li.result-row").each(function(i, element) {
-      // console.log(element);
       var title = $(element).find('a.result-title').text();
       var link = $(element).find('a.result-title').attr('href');
       var price = $(element).find('span.result-price').text();
@@ -56,21 +55,23 @@ app.get('/scrape', function(req, res) {
         summary: newSummary,
         location: location
       };
-  
       resultsArr.push(rentalInfo);
     });
 
     ArticleSchema.deleteMany({}, function(err, res) {
+
       if (err) {
         throw err;
       }
       ArticleSchema.create(resultsArr, function(err, results) {
+
         if (err) {
           throw err;
         }
         
       });
     });
+
     res.send(resultsArr);
   });
 
