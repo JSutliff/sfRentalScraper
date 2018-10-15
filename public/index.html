@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,49 +10,55 @@
 
   <title>SF Rental Scraper</title>
 </head>
+
 <body>
 
   <!-- content container -->
   <div class="uk-container">
 
     <!-- Header -->
-      <div class="uk-card uk-card-default uk-width-1-1@m">
-          <div class="uk-card-header">
-              <div class="uk-grid-small uk-flex-middle" uk-grid>
-                  <div class="uk-width-expand">
-                      <h1 class="uk-heading-line uk-text-center"><span>SF Rental Scraper</span></h1>
-                      <p>Scrape and save rental listings from SF Bay-Area craigslist 
-                        that are dog friendly and $3500/mo or less. Users can mark
-                        favorite rentals and leave notes.  
-                      </p>
-                      <button class="uk-button uk-button-primary uk-align-center rescrape">Rescrape</button>
-                      <button class="uk-button uk-button-danger uk-align-center">Saved Rentals</button>
-                    </div>
-                  </div>
-                </div>
+    <div class="uk-card uk-card-default uk-width-1-1@m">
+      <div class="uk-card-header">
+        <div class="uk-grid-small uk-flex-middle" uk-grid>
+          <div class="uk-width-expand">
+            <h1 class="uk-heading-line uk-text-center">
+              <span>SF Rental Scraper</span>
+            </h1>
+            <p>Scrape and save rental listings from SF Bay-Area craigslist that are dog friendly and $3500/mo or less. Users
+              can mark favorite rentals and leave notes.
+            </p>
+            <button class="uk-button uk-button-primary uk-align-center rescrape">Rescrape</button>
+            <button class="uk-button uk-button-danger uk-align-center showSaved">Saved Rentals</button>
+          </div>
+        </div>
       </div>
-      
-      <br>
-      <!-- Content -->
+    </div>
 
-      <div id="appendCardsHere">
+    <br>
+    <!-- Content -->
 
-      </div>
+    <div id="appendCardsHere">
 
-  <br>
+    </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-rc.16/js/uikit.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-rc.16/js/uikit-icons.min.js"></script>
-<script
-			  src="https://code.jquery.com/jquery-3.3.1.js"
-			  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
-			  crossorigin="anonymous"></script>
-<script>
-  $('.rescrape').on('click', function() {
-    $.ajax("/scrape", {
-            type: "GET"
+    <br>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-rc.16/js/uikit.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-rc.16/js/uikit-icons.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+    <script>
+      function scrape() {
+        $.ajax("/scrape", {
+          type: "GET"
         }).then(function (result) {
-          result.forEach(function(elem) {
+          $('#appendCardsHere').empty();
+          result.forEach(function (elem, i) {
+            var saveButton;
+            if (elem.saved) {
+              saveButton = `<p class="uk-icon-button save" data-link="${elem['link']}" uk-icon="check"></p>`
+            } else {
+              saveButton = `<a href="#" class="uk-icon-button save" data-link="${elem['link']}" uk-icon="heart"></a>`
+            }
             console.log('scrape done')
             $('#appendCardsHere').append(`<div class="uk-card uk-card-default uk-width-1-1@m">
           <div class="uk-card-header">
@@ -67,20 +74,97 @@
               <p><a href="${elem.link}">Link To Listing</a></p>
           </div>
           <div class="uk-card-footer">
-              <a href="" class="uk-icon-button save" uk-icon="heart"></a>
-              <a href="" class="uk-icon-button note" uk-icon="file-edit"></a>
+              ${saveButton}
+              <form class="uk-form-horizontal uk-margin-large">
+
+<div class="uk-margin">
+    <label class="uk-form-label" for="form-horizontal-text">Notes</label>
+    <div class="uk-form-controls">
+        <input class="uk-input" id="saveNote-${i}" type="text" value="${elem.note}">
+    </div>
+</div>
+<button class="uk-button uk-button-primary uk-button-small saveNote" data-input="#saveNote-${i}" data-link="${elem['link']}">Save Notes</button>
+</form>
           </div>
       </div>
   </div> <br>`);
           })
         })
-  })
+      }
+      $('.rescrape').on('click', scrape)
 
-  $('.uk-icon-button').on('click', function(event) {
-    console.log('save was clicked!1')
-    // event.preventDefault();
-    console.log('save was clicked!')
-  })
-</script>
+      $(document).on('click', '.save', function (event) {
+        console.log('save was clicked!')
+        $.post('/save', {
+          link: $(this).attr('data-link')
+        }).done(function () {
+          console.log("hello")
+          return scrape()
+        });
+      })
+
+      $(document).on('click', '.saveNote', function (event) {
+        event.preventDefault();
+        console.log('save note was clicked!')
+        let userInput = $(this).attr('data-input');
+        $.post('/savenote', {
+          note: $(userInput).val().trim(),
+          link: $(this).attr('data-link')
+        }).done(function () {
+          console.log("hello")
+          return scrape()
+        });
+      })
+
+      $(document).on('click', '.showSaved', function (event) {
+        event.preventDefault();
+        console.log('show was clicked')
+        $.ajax("/scrape", {
+          type: "GET"
+        }).then(function (result) {
+          $('#appendCardsHere').empty();
+          result.forEach(function (elem, i) {
+            var saveButton;
+            if (elem.saved) {
+              saveButton = `<p class="uk-icon-button save" data-link="${elem['link']}" uk-icon="check"></p>`
+            } else {
+              return; 
+              
+            }
+            console.log('scrape done')
+            $('#appendCardsHere').append(`<div class="uk-card uk-card-default uk-width-1-1@m">
+          <div class="uk-card-header">
+              <div class="uk-grid-small uk-flex-middle" uk-grid>
+                  <div class="uk-width-expand">
+                      <h3 class="uk-card-title uk-margin-remove-bottom">${elem.title}</h3>
+                      <p class="uk-text-meta uk-margin-remove-top">${elem.price}</p>
+                  </div>
+              </div>
+          </div>
+          <div class="uk-card-body">
+              <p>${elem.summary}</p>
+              <p><a href="${elem.link}" target="_blank">Link To Listing</a></p>
+          </div>
+          <div class="uk-card-footer">
+              ${saveButton}
+              <form class="uk-form-horizontal uk-margin-large">
+
+<div class="uk-margin">
+    <label class="uk-form-label" for="form-horizontal-text">Notes</label>
+    <div class="uk-form-controls">
+        <input class="uk-input" id="saveNote-${i}" type="text" value="${elem.note}">
+    </div>
+</div>
+<button class="uk-button uk-button-primary uk-button-small saveNote" data-input="#saveNote-${i}" data-link="${elem['link']}">Save Notes</button>
+</form>
+          </div>
+      </div>
+  </div> <br>`);
+          })
+        })
+        
+      })
+    </script>
 </body>
+
 </html>

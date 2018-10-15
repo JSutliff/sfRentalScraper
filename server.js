@@ -6,11 +6,14 @@ var request = require("request");
 var cheerio = require("cheerio");
 var ArticleSchema = require("./models/articles");
 var mongoose = require("mongoose");
-
+const bodyParser = require('body-parser');
 
 // Initialize Express
 var app = express();
 
+// Define middleware here
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 //Serve up static assets from public
 app.use(express.static("public"));
@@ -47,7 +50,6 @@ app.get('/scrape', function(req, res) {
         return elem.length > 0;
       });
       
-
       var rentalInfo = {
         title: title,
         link: link,
@@ -57,27 +59,60 @@ app.get('/scrape', function(req, res) {
       };
       resultsArr.push(rentalInfo);
     });
+    ArticleSchema.deleteMany({saved: false}, function(err, results) {
 
-    ArticleSchema.deleteMany({}, function(err, res) {
-
-      if (err) {
-        throw err;
-      }
+    //   if (err) {
+    //     throw err;
+    //   }
       ArticleSchema.create(resultsArr, function(err, results) {
 
-        if (err) {
-          throw err;
-        }
+        // if (err) {
+        //   throw err;
+        // }
+
+        ArticleSchema.find({}, function(err, results) {
+          res.send(results);
+        })
         
       });
     });
 
-    res.send(resultsArr);
+    // res.send(resultsArr);
   });
 
 });
 
+app.post('/save', function(req, res) {
+  console.log(req.body);
+  ArticleSchema.findOneAndUpdate(
+    {
+      link: req.body.link
+    },
+    {
+      $set: {saved: true}
+    },
+    {new: true}
+  ).then(function(post) {
+    console.log(post)
+    res.json(post)
+  })
+})
 
+app.post('/savenote', function(req, res) {
+  console.log(req.body);
+  ArticleSchema.findOneAndUpdate(
+    {
+      link: req.body.link
+    },
+    {
+      $set: {note: req.body.note}
+    },
+    {new: true}
+  ).then(function(post) {
+    console.log(post)
+    res.json(post)
+  })
+})
 
 // Start the server
 app.listen(PORT, function() {

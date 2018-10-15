@@ -10,6 +10,7 @@ var ArticlesSchema = new Schema({
   link: {
     type: String,
     trim: true,
+    unique: true
   },
   price: {
     type: String,
@@ -18,6 +19,19 @@ var ArticlesSchema = new Schema({
   location: {
     type: String,
     trim: true,
+  },
+  summary: {
+    type: String,
+    trim: true,
+  },
+  saved: {
+    type: Boolean,
+    default: false
+  },
+  note: {
+    type: String,
+    trim: true,
+    default: 'Enter your notes here'
   }
 
 });
