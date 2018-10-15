@@ -20,7 +20,9 @@ app.use(express.static("public"));
 // ====================================================
 
 mongoose.Promise = Promise;
-mongoose.connect("mongodb://localhost/sfRentalScrapper", { useNewUrlParser: true });
+var MONGO_URI = process.env.MONGODB_URI || "mongodb://localhost/sfRentalScrapper"
+
+mongoose.connect(MONGODB_URI);
 
 
 var PORT = process.env.PORT ||3000;
