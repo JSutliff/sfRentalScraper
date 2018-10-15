@@ -23,7 +23,7 @@ mongoose.Promise = Promise;
 mongoose.connect("mongodb://localhost/sfRentalScrapper", { useNewUrlParser: true });
 
 
-var PORT = 3000;
+var PORT = process.env.PORT ||3000;
 
 app.get('/scrape', function(req, res) {
   request("https://sfbay.craigslist.org/search/sfc/apa?max_price=3500&availabilityMode=0&pets_dog=1&sale_date=all+dates", function(error, response, html) {
